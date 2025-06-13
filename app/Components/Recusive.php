@@ -9,20 +9,26 @@ class Recusive
 {
     private $data;
     private $htmlSelect = '';
+    private $visited = []; // Thêm mảng này để kiểm tra vòng lặp
+
     public function __construct($data)
     {
-        $this->data = $data;  // Lưu trữ dữ liệu danh mục
+        $this->data = $data;
     }
-    // Hàm đệ quy để tạo HTML options cho select
+
     public function categoryRecusive($parent_id = 0)
-    { $data= Category::all();
+    {
         foreach ($this->data as $value) {
-            if ($value['parent_id'] == $parent_id) {  // Kiểm tra nếu là danh mục con
-                $this->htmlSelect .= "<option value='{$value['id']}'>{$value['name']}</option>";;  // Tạo option cho thẻ select
-                // Gọi đệ quy với id của danh mục con
-                $this->categoryRecusive($value['id']);  // Tiếp tục đệ quy để lấy các danh mục con
+            if ($value['parent_id'] == $parent_id) {
+                // Kiểm tra nếu đã duyệt qua ID này thì bỏ qua để tránh lặp vô hạn
+                if (in_array($value['id'], $this->visited)) {
+                    continue;
+                }
+                $this->visited[] = $value['id'];
+                $this->htmlSelect .= "<option value='{$value['id']}'>{$value['name']}</option>";
+                $this->categoryRecusive($value['id']);
             }
         }
-        return $this->htmlSelect;  // Trả về HTML đã được xây dựng
+        return $this->htmlSelect;
     }
 }
