@@ -30,7 +30,7 @@ class RegisterController extends Controller
             'email'         => $request->email,
             'password' => Hash::make($request->password),
             'phone_number'  => $request->phone_number,
-            'role_id'       => 2, // Mặc định là user
+            'role_id'       => 4, // Mặc định là user
         ]);
         Auth::login($user);
 

@@ -16,36 +16,37 @@ class LoginController extends Controller
         return view('login');
     }
 
-    public function login(Request $request)
-    {
-        $request->validate([
-            'email'    => 'required|string',
-            'password' => 'required|string',
-        ]);
+public function login(Request $request)
+{
+    $request->validate([
+        'email'    => 'required|string',
+        'password' => 'required|string',
+    ]);
 
-        // Kiểm tra bảng users (email hoặc username)
-        $user = User::where('email', $request->email)
-            ->orWhere('username', $request->email)
-            ->first();
+    // Chỉ kiểm tra bảng users theo email
+    $user = User::where('email', $request->email)->first();
 
-        if ($user && Hash::check($request->password, $user->password)) {
-            Auth::login($user);
-            return redirect()->route('index');
+    // Đúng mật khẩu
+    if ($user && Hash::check($request->password, $user->password_hash)) {
+        Auth::login($user);
+
+        // Chuyển hướng theo role_id
+        switch ($user->role_id) {
+            case 0:
+                return redirect()->route('user.dashboard');
+            case 1:
+                return redirect()->route('moderator.dashboard');
+            case 2:
+                return redirect()->route('admin.dashboard');
+            case 3:
+                return redirect()->route('superadmin.dashboard');
+            default:
+                return redirect()->route('index');
         }
-
-        // Kiểm tra bảng admins (username hoặc email nếu có)
-        $admin = DB::table('admins')
-            ->where('username', $request->email)
-            ->first();
-
-        // So sánh mật khẩu plain text cho admin
-        if ($admin && $request->password === $admin->password) {
-            session(['admin' => $admin]);
-            return redirect()->route('home');
-        }
-
-        return back()->withErrors(['email' => 'Tài khoản hoặc mật khẩu không đúng!']);
     }
+
+    return back()->withErrors(['email' => 'Email hoặc mật khẩu không đúng!']);
+}
 
     public function logout(Request $request)
     {
